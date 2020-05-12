@@ -32,7 +32,7 @@ if __name__ == '__main__':
     save_path2 = '_'.join([str(args.lr), str(args.gamma), str(args.schedule)])
     args.save_path = osp.join(save_path1, save_path2)
     if not osp.exists(save_path1):
-        os.mkdir(save_path1)
+        os.makedirs(save_path1)
     ensure_path(args.save_path)
 
     if args.dataset == 'MiniImageNet':

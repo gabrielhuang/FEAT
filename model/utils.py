@@ -33,9 +33,9 @@ def ensure_path(dir_path, scripts_to_save=None):
     if os.path.exists(dir_path):
         if input('{} exists, remove? ([y]/n)'.format(dir_path)) != 'n':
             shutil.rmtree(dir_path)
-            os.mkdir(dir_path)
+            os.makedirs(dir_path)
     else:
-        os.mkdir(dir_path)
+        os.makedirs(dir_path)
 
     print('Experiment dir : {}'.format(dir_path))
     if scripts_to_save is not None:
@@ -133,7 +133,7 @@ def postprocess_args(args):
         save_path2 += '-NoAug'
             
     if not os.path.exists(os.path.join(args.save_dir, save_path1)):
-        os.mkdir(os.path.join(args.save_dir, save_path1))
+        os.makedirs(os.path.join(args.save_dir, save_path1))
     args.save_path = os.path.join(args.save_dir, save_path1, save_path2)
     return args
 
