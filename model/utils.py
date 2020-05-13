@@ -180,5 +180,10 @@ def get_command_line_parser():
     parser.add_argument('--log_interval', type=int, default=50)
     parser.add_argument('--eval_interval', type=int, default=1)
     parser.add_argument('--save_dir', type=str, default='./checkpoints')
-    
+
+    # task-supervision at test-time parameters
+    parser.add_argument('--tst_free', type=int, default=0, help='flag to activate tst statistics')
+    parser.add_argument('--tst_criterion', type=str, default='', help='criterion for selecting best model')
+    parser.add_argument('--sinkhorn_reg', type=float, default=1., help='regularization for sinkhorn k-means')
+    parser.add_argument('--debug_fast', type=int, default=0, help='one batch per epoch for fast debugging')
     return parser

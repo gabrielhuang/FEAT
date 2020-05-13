@@ -47,19 +47,39 @@ class Trainer(object, metaclass=abc.ABCMeta):
     def final_record(self):
         pass    
 
+    def print_metric_summaries(self, metric_summaries, prefix='\t'):
+        for key, (mean, std) in metric_summaries.items():
+            print('{}{}: {:.4f} +/- {:.4f}'.format(prefix, key, mean, std))
+
+    def log_metric_summaries(self, metric_summaries, epoch, prefix=''):
+        for key, (mean, std) in metric_summaries.items():
+            self.logger.add_scalar('{}{}'.format(prefix, key), mean, epoch)
+
     def try_evaluate(self, epoch):
         args = self.args
         if self.train_epoch % args.eval_interval == 0:
-            vl, va, vap = self.evaluate(self.val_loader)
-            self.logger.add_scalar('val_loss', float(vl), self.train_epoch)
-            self.logger.add_scalar('val_acc', float(va),  self.train_epoch)
-            print('epoch {}, val, loss={:.4f} acc={:.4f}+{:.4f}'.format(epoch, vl, va, vap))
+
+            if not args.tst_free:
+                vl, va, vap = self.evaluate(self.val_loader)
+                self.logger.add_scalar('val_loss', float(vl), self.train_epoch)
+                self.logger.add_scalar('val_acc', float(va),  self.train_epoch)
+                print('epoch {}, val, loss={:.4f} acc={:.4f}+{:.4f}'.format(epoch, vl, va, vap))
+            else:
+                vl, va, vap, metrics = self.evaluate(self.val_loader)
+                self.logger.add_scalar('val_loss', float(vl), self.train_epoch)
+                self.logger.add_scalar('val_acc', float(va),  self.train_epoch)
+                print('epoch {}, val, loss={:.4f} acc={:.4f}+{:.4f}'.format(epoch, vl, va, vap))
+                self.print_metric_summaries(metrics, prefix='\tval_')
+                self.log_metric_summaries(metrics, epoch=epoch, prefix='val_')
 
             if va >= self.trlog['max_acc']:
                 self.trlog['max_acc'] = va
                 self.trlog['max_acc_interval'] = vap
                 self.trlog['max_acc_epoch'] = self.train_epoch
                 self.save_model('max_acc')
+
+            # Probably a different criterion for TST -> optimize here.
+            print('TODO: save best TST criterion')
 
     def try_logging(self, tl1, tl2, ta, tg=None):
         args = self.args

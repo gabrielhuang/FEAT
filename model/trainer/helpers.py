@@ -59,7 +59,7 @@ def get_dataloader(args):
                                       args.shot + args.query)
 
     train_loader = DataLoader(dataset=trainset,
-                                  num_workers=num_workers,
+                                  num_workers=num_workers if not args.debug_fast else 0,
                                   batch_sampler=train_sampler,
                                   pin_memory=True)
 
@@ -73,7 +73,7 @@ def get_dataloader(args):
                             args.eval_way, args.eval_shot + args.eval_query)
     val_loader = DataLoader(dataset=valset,
                             batch_sampler=val_sampler,
-                            num_workers=args.num_workers,
+                            num_workers=args.num_workers if not args.debug_fast else 0,
                             pin_memory=True)
     
     
@@ -83,7 +83,7 @@ def get_dataloader(args):
                             args.eval_way, args.eval_shot + args.eval_query)
     test_loader = DataLoader(dataset=testset,
                             batch_sampler=test_sampler,
-                            num_workers=args.num_workers,
+                            num_workers=args.num_workers if not args.debug_fast else 0,
                             pin_memory=True)    
 
     return train_loader, val_loader, test_loader

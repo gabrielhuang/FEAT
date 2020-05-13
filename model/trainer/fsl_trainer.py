@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from . import tst_free
 from model.trainer.base import Trainer
 from model.trainer.helpers import (
     get_dataloader, prepare_model, prepare_optimizer,
@@ -16,6 +17,7 @@ from model.utils import (
 )
 from tensorboardX import SummaryWriter
 from collections import deque
+from collections import defaultdict
 from tqdm import tqdm
 
 class FSLTrainer(Trainer):
@@ -50,6 +52,7 @@ class FSLTrainer(Trainer):
         
         # start FSL training
         label, label_aux = self.prepare_label()
+        #all_labels = torch.arange(args.way, dtype=torch.int16, device=label.device).repeat(args.shot + args.query)
         for epoch in range(1, args.max_epoch + 1):
             self.train_epoch += 1
             self.model.train()
@@ -101,6 +104,10 @@ class FSLTrainer(Trainer):
                 # refresh start_tm
                 start_tm = time.time()
 
+                if args.debug_fast:
+                    print('Debug fast, breaking training after 1 mini-batch')
+                    break
+
             self.lr_scheduler.step()
             self.try_evaluate(epoch)
 
@@ -118,10 +125,12 @@ class FSLTrainer(Trainer):
         # evaluation mode
         self.model.eval()
         record = np.zeros((args.num_eval_episodes, 2)) # loss and acc
+        metrics = defaultdict(list)
         label = torch.arange(args.eval_way, dtype=torch.int16).repeat(args.eval_query)
         label = label.type(torch.LongTensor)
         if torch.cuda.is_available():
             label = label.cuda()
+        all_labels = torch.arange(args.eval_way, device=label.device).repeat(args.eval_shot + args.eval_query)
         print('best epoch {}, best val acc={:.4f} + {:.4f}'.format(
                 self.trlog['max_acc_epoch'],
                 self.trlog['max_acc'],
@@ -133,22 +142,47 @@ class FSLTrainer(Trainer):
                 else:
                     data = batch[0]
 
-                logits = self.model(data)
+                embeddings, logits = self.model(data, return_feature=True)
+
+                # data contains both support and query sets (typically 25+75 for 5-shot 5-way 15-query)
                 loss = F.cross_entropy(logits, label)
                 acc = count_acc(logits, label)
                 record[i-1, 0] = loss.item()
                 record[i-1, 1] = acc
-                
+
+                if args.tst_free:
+
+                    embeddings_dict = self.model.get_embeddings_dict(embeddings, all_labels)
+
+                    # TST-free part
+                    clustering_losses = tst_free.clustering_loss(embeddings_dict, args.sinkhorn_reg, 'wasserstein',
+                                                                 normalize_by_dim=True,
+                                                                 clustering_iterations=20, sinkhorn_iterations=20,
+                                                                 sinkhorn_iterations_warmstart=4,
+                                                                 sanity_check=False)
+
+                    for key, val in clustering_losses.items():
+                        metrics[key].append(val)
+
+                if args.debug_fast:
+                    print('Debug fast, breaking eval after 1 mini-batch')
+                    record = record[:1]  # truncate summaries
+                    break
+
         assert(i == record.shape[0])
         vl, _ = compute_confidence_interval(record[:,0])
         va, vap = compute_confidence_interval(record[:,1])
-        
+        metric_summaries = {key: compute_confidence_interval(val) for key, val in metrics.items()}
+
         # train mode
         self.model.train()
         if self.args.fix_BN:
             self.model.encoder.eval()
 
-        return vl, va, vap
+        if args.tst_free:
+            return vl, va, vap, metric_summaries
+        else:
+            return vl, va, vap
 
     def evaluate_test(self):
         # restore model args
@@ -157,10 +191,12 @@ class FSLTrainer(Trainer):
         self.model.load_state_dict(torch.load(osp.join(self.args.save_path, 'max_acc.pth'))['params'])
         self.model.eval()
         record = np.zeros((10000, 2)) # loss and acc
+        metrics = defaultdict(list)  # all other metrics
         label = torch.arange(args.eval_way, dtype=torch.int16).repeat(args.eval_query)
         label = label.type(torch.LongTensor)
         if torch.cuda.is_available():
             label = label.cuda()
+        all_labels = torch.arange(args.eval_way, device=label.device).repeat(args.eval_shot + args.eval_query)
         print('best epoch {}, best val acc={:.4f} + {:.4f}'.format(
                 self.trlog['max_acc_epoch'],
                 self.trlog['max_acc'],
@@ -172,15 +208,37 @@ class FSLTrainer(Trainer):
                 else:
                     data = batch[0]
 
-                logits = self.model(data)
+                embeddings, logits = self.model(data, return_feature=True)
                 loss = F.cross_entropy(logits, label)
                 acc = count_acc(logits, label)
                 record[i-1, 0] = loss.item()
                 record[i-1, 1] = acc
+
+                if args.tst_free:
+
+                    embeddings_dict = self.model.get_embeddings_dict(embeddings, all_labels)
+
+                    # TST-free part
+                    clustering_losses = tst_free.clustering_loss(embeddings_dict, args.sinkhorn_reg, 'wasserstein',
+                                                                 temperature=np.sqrt(args.temperature),
+                                                                 normalize_by_dim=False,
+                                                                 clustering_iterations=20, sinkhorn_iterations=20,
+                                                                 sinkhorn_iterations_warmstart=4,
+                                                                 sanity_check=False)
+
+                    for key, val in clustering_losses.items():
+                        metrics[key].append(val)
+
+                if args.debug_fast:
+                    print('Debug fast, breaking TEST after 1 mini-batch')
+                    record = record[:1]
+                    break
+
         assert(i == record.shape[0])
         vl, _ = compute_confidence_interval(record[:,0])
         va, vap = compute_confidence_interval(record[:,1])
-        
+        metric_summaries = {key: compute_confidence_interval(val) for key, val in metrics.items()}
+
         self.trlog['test_acc'] = va
         self.trlog['test_acc_interval'] = vap
         self.trlog['test_loss'] = vl
@@ -193,16 +251,27 @@ class FSLTrainer(Trainer):
                 self.trlog['test_acc'],
                 self.trlog['test_acc_interval']))
 
-        return vl, va, vap
+        self.print_metric_summaries(metric_summaries, prefix='\ttest_')
+        self.log_metric_summaries(metric_summaries, 0, prefix='test_')
+        self.trlog['TST'] = metric_summaries
+
+        if args.tst_free:
+            return vl, va, vap, metric_summaries
+        else:
+            return vl, va, vap
     
     def final_record(self):
         # save the best performance in a txt file
         
-        with open(osp.join(self.args.save_path, '{}+{}'.format(self.trlog['test_acc'], self.trlog['test_acc_interval'])), 'w') as f:
+        with open(osp.join(self.args.save_path, 'summary.txt'), 'w') as f:
             f.write('best epoch {}, best val acc={:.4f} + {:.4f}\n'.format(
                 self.trlog['max_acc_epoch'],
                 self.trlog['max_acc'],
                 self.trlog['max_acc_interval']))
             f.write('Test acc={:.4f} + {:.4f}\n'.format(
                 self.trlog['test_acc'],
-                self.trlog['test_acc_interval']))            
+                self.trlog['test_acc_interval']))
+
+            if 'TST' in self.trlog:
+                for key, (mean, std) in self.trlog['TST'].items():
+                    f.write('\tTST test {} {:.4f} +/- {:.4f}\n'.format(key, mean, std))
