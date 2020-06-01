@@ -139,7 +139,7 @@ class FSLTrainer(Trainer):
 
                 print('\nEpoch {} : Evaluating on {}'.format(self.train_epoch, split))
 
-                vl, va, vap, metrics = self.evaluate(self.val_loader)
+                vl, va, vap, metrics = self.evaluate(loader)
                 split_stats = OrderedDict()
                 split_stats['{}_SupervisedAcc'.format(split)] = va
                 split_stats['{}_SupervisedAcc_interval'.format(split)] = vap
