@@ -15,10 +15,9 @@ from model.utils import (
     Averager, Timer, count_acc, one_hot,
     compute_confidence_interval,
 )
-from tensorboardX import SummaryWriter
-from collections import deque
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from tqdm import tqdm
+import json
 
 class FSLTrainer(Trainer):
     def __init__(self, args):
@@ -43,8 +42,122 @@ class FSLTrainer(Trainer):
             label_aux = label_aux.cuda()
             
         return label, label_aux
-    
+
     def train(self):
+        if self.args.tst_free:
+            return self.train_tst()
+        else:
+            return self.train_original()
+
+    def train_tst(self):
+        args = self.args
+        self.model.train()
+        if self.args.fix_BN:
+            self.model.encoder.eval()
+
+        # Clear evaluation file
+        with open(osp.join(self.args.save_path, 'eval.jl'), 'w') as fp:
+            pass
+
+        # start FSL training
+        label, label_aux = self.prepare_label()
+        for epoch in range(1, args.max_epoch + 1):
+            self.train_epoch += 1
+            self.model.train()
+            if self.args.fix_BN:
+                self.model.encoder.eval()
+
+            tl1 = Averager()
+            tl2 = Averager()
+            ta = Averager()
+
+            start_tm = time.time()
+            for batch in self.train_loader:
+                self.train_step += 1
+
+                if torch.cuda.is_available():
+                    data, gt_label = [_.cuda() for _ in batch]
+                else:
+                    data, gt_label = batch[0], batch[1]
+
+                data_tm = time.time()
+                self.dt.add(data_tm - start_tm)
+
+                # get saved centers
+                logits, reg_logits = self.para_model(data)
+                if reg_logits is not None:
+                    loss = F.cross_entropy(logits, label)
+                    total_loss = loss + args.balance * F.cross_entropy(reg_logits, label_aux)
+                else:
+                    loss = F.cross_entropy(logits, label)
+                    total_loss = F.cross_entropy(logits, label)
+
+                tl2.add(loss)
+                forward_tm = time.time()
+                self.ft.add(forward_tm - data_tm)
+                acc = count_acc(logits, label)
+
+                tl1.add(total_loss.item())
+                ta.add(acc)
+
+                self.optimizer.zero_grad()
+                total_loss.backward()
+                backward_tm = time.time()
+                self.bt.add(backward_tm - forward_tm)
+
+                self.optimizer.step()
+                optimizer_tm = time.time()
+                self.ot.add(optimizer_tm - backward_tm)
+
+                # refresh start_tm
+                start_tm = time.time()
+
+                if args.debug_fast:
+                    print('Debug fast, breaking training after 1 mini-batch')
+                    break
+
+            self.lr_scheduler.step()
+            self.try_evaluate_tst(epoch)
+
+            print('ETA:{}/{}'.format(
+                self.timer.measure(),
+                self.timer.measure(self.train_epoch / args.max_epoch))
+            )
+
+        torch.save(self.trlog, osp.join(args.save_path, 'trlog'))
+        #self.save_model('epoch-last')
+
+    def try_evaluate_tst(self, epoch):
+        args = self.args
+        if self.train_epoch % args.eval_interval == 0:
+            print('*'*32)
+            for split, loader in [('valid', self.val_loader), ('test', self.test_loader)]:
+
+                print('\nEpoch {} : Evaluating on {}'.format(self.train_epoch, split))
+
+                vl, va, vap, metrics = self.evaluate(self.val_loader)
+
+                stats = OrderedDict()
+                stats['epoch'] = self.train_epoch
+                stats['{}_SupervisedAcc'.format(split)] = vl
+                stats['{}_SupervisedAcc_interval'.format(split)] = vap
+                stats['{}_SupervisedLoss'.format(split)] = vl
+                for key, (val, ci) in metrics.items():
+                    stats['{}_{}'.format(split, key)] = val
+                    stats['{}_{}_interval'.format(split, key)] = ci
+
+                # dump the metrics
+                with open(osp.join(self.args.save_path, 'eval.jl'), 'a') as fp:
+                    fp.write('{}\n'.format(json.dumps(stats)))
+
+                text = ['{}={:.3f}'.format(key, val) for key, val in stats.items() if not key.endswith('_interval')]
+                print(' | '.join(text))
+
+                if split == 'valid':
+                    # Do the best model thing
+                    pass
+
+    def train_original(self):
         args = self.args
         self.model.train()
         if self.args.fix_BN:
@@ -125,16 +238,16 @@ class FSLTrainer(Trainer):
         # evaluation mode
         self.model.eval()
         record = np.zeros((args.num_eval_episodes, 2)) # loss and acc
-        metrics = defaultdict(list)
+        metrics = OrderedDict()
         label = torch.arange(args.eval_way, dtype=torch.int16).repeat(args.eval_query)
         label = label.type(torch.LongTensor)
         if torch.cuda.is_available():
             label = label.cuda()
         all_labels = torch.arange(args.eval_way, device=label.device).repeat(args.eval_shot + args.eval_query)
-        print('best epoch {}, best val acc={:.4f} + {:.4f}'.format(
-                self.trlog['max_acc_epoch'],
-                self.trlog['max_acc'],
-                self.trlog['max_acc_interval']))
+        #print('best epoch {}, best val acc={:.4f} + {:.4f}'.format(
+        #        self.trlog['max_acc_epoch'],
+        #        self.trlog['max_acc'],
+        #        self.trlog['max_acc_interval']))
         with torch.no_grad():
             for i, batch in enumerate(data_loader, 1):
                 if torch.cuda.is_available():
@@ -155,14 +268,19 @@ class FSLTrainer(Trainer):
                     embeddings_dict = self.model.get_embeddings_dict(embeddings, all_labels)
 
                     # TST-free part
-                    clustering_losses = tst_free.clustering_loss(embeddings_dict, args.sinkhorn_reg, 'wasserstein',
-                                                                 normalize_by_dim=True,
-                                                                 clustering_iterations=20, sinkhorn_iterations=20,
-                                                                 sinkhorn_iterations_warmstart=4,
-                                                                 sanity_check=False)
+                    for sinkhorn_reg_str in args.sinkhorn_reg:  # loop over all possible regularizations
+                        sinkhorn_reg_float = float(sinkhorn_reg_str)
+                        clustering_losses = tst_free.clustering_loss(embeddings_dict, sinkhorn_reg_float, 'wasserstein',
+                                                                     temperature=np.sqrt(args.temperature),
+                                                                     normalize_by_dim=False,
+                                                                     clustering_iterations=20, sinkhorn_iterations=20,
+                                                                     sinkhorn_iterations_warmstart=4,
+                                                                     sanity_check=False)
 
-                    for key, val in clustering_losses.items():
-                        metrics[key].append(val)
+                        for key, val in clustering_losses.items():
+                            key += '_reg{}'.format(sinkhorn_reg_str)
+                            metrics.setdefault(key, [])
+                            metrics[key].append(val)
 
                 if args.debug_fast:
                     print('Debug fast, breaking eval after 1 mini-batch')

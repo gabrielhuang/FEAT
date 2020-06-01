@@ -15,12 +15,13 @@ if __name__ == '__main__':
     pprint(vars(args))
 
     set_gpu(args.gpu)
-    trainer = FSLTrainer(args)
-
-    trainer.train()
-    if args.tst_criterion:
+    if args.tst_free:
+        trainer = FSLTrainer(args)
+        trainer.train()
+    else:
+        trainer = FSLTrainer(args)
+        trainer.train()
         trainer.evaluate_test(use_max_tst=True)
-    trainer.evaluate_test(use_max_tst=False)
 
     print(args.save_path)
 

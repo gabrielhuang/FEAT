@@ -109,7 +109,10 @@ def compute_confidence_interval(data):
     pm = 1.96 * (std / np.sqrt(len(a)))
     return m, pm
 
-def postprocess_args(args):            
+def postprocess_args(args):
+
+    args.sinkhorn_reg = args.sinkhorn_reg.split(',')
+
     args.num_classes = args.way
     save_path1 = '-'.join([args.dataset, args.model_class, args.backbone_class, '{:02d}w{:02d}s{:02}q'.format(args.way, args.shot, args.query)])
     save_path2 = '_'.join([str('_'.join(args.step_size.split(','))), str(args.gamma),
@@ -184,7 +187,7 @@ def get_command_line_parser():
     # task-supervision at test-time parameters
     parser.add_argument('--tst_free', type=int, default=0, help='flag to activate tst statistics')
     parser.add_argument('--tst_criterion', type=str, default='', help='criterion for selecting best model')
-    parser.add_argument('--sinkhorn_reg', type=float, default=1., help='regularization for sinkhorn k-means')
+    parser.add_argument('--sinkhorn_reg', type=str, default='1', help='comma separated regularizations')
 
     # general params for debugging & running
     parser.add_argument('--debug_fast', type=int, default=0, help='one batch per epoch for fast debugging')

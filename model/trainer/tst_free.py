@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment as hungarian
 import torch
 import torch.nn.functional as F
-
+from collections import OrderedDict
 
 get_nll = torch.nn.NLLLoss()
 
@@ -339,9 +339,9 @@ def clustering_loss(embedded_sample, regularization, clustering_type, normalize_
         all_support_clustering_accuracy[conditional_mode] = support_clustering_accuracy
         all_query_clustering_accuracy[conditional_mode] = query_clustering_accuracy
 
-    return {
-        'ClusteringAcc_softmax': all_support_clustering_accuracy['softmax'],
-        'ClusteringAcc_sinkhorn': all_support_clustering_accuracy['sinkhorn'],
-        'UnsupervisedAcc_softmax': all_query_clustering_accuracy['softmax'],
-        'UnsupervisedAcc_sinkhorn': all_query_clustering_accuracy['sinkhorn'],
-    }
+    stats = OrderedDict()
+    stats['ClusteringAcc_softmax'] = all_support_clustering_accuracy['softmax']
+    stats['ClusteringAcc_sinkhorn'] = all_support_clustering_accuracy['sinkhorn']
+    stats['UnsupervisedAcc_softmax'] = all_query_clustering_accuracy['softmax']
+    stats['UnsupervisedAcc_sinkhorn'] = all_query_clustering_accuracy['sinkhorn']
+    return stats
