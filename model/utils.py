@@ -112,6 +112,7 @@ def compute_confidence_interval(data):
 def postprocess_args(args):
 
     args.sinkhorn_reg = args.sinkhorn_reg.split(',')
+    assert args.num_eval_episodes == args.num_test_episodes
 
     args.num_classes = args.way
     save_path1 = '-'.join([args.dataset, args.model_class, args.backbone_class, '{:02d}w{:02d}s{:02}q'.format(args.way, args.shot, args.query)])
@@ -145,7 +146,8 @@ def get_command_line_parser():
     parser.add_argument('--max_epoch', type=int, default=200)
     parser.add_argument('--episodes_per_epoch', type=int, default=100)
     parser.add_argument('--num_eval_episodes', type=int, default=600)
-    parser.add_argument('--model_class', type=str, default='FEAT', 
+    parser.add_argument('--num_test_episodes', type=int, default=600)  # some people recommend 10000 though
+    parser.add_argument('--model_class', type=str, default='FEAT',
                         choices=['MatchNet', 'ProtoNet', 'BILSTM', 'DeepSet', 'GCN', 'FEAT', 'FEATSTAR']) # None for MatchNet or ProtoNet
     parser.add_argument('--use_euclidean', action='store_true', default=False)    
     parser.add_argument('--backbone_class', type=str, default='Res12',

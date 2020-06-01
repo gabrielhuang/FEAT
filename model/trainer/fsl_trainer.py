@@ -241,7 +241,10 @@ class FSLTrainer(Trainer):
         args = self.args
         # evaluation mode
         self.model.eval()
-        record = np.zeros((args.num_eval_episodes, 2)) # loss and acc
+
+        accuracies = []
+        losses = []
+
         metrics = OrderedDict()
         label = torch.arange(args.eval_way, dtype=torch.int16).repeat(args.eval_query)
         label = label.type(torch.LongTensor)
@@ -264,8 +267,8 @@ class FSLTrainer(Trainer):
                 # data contains both support and query sets (typically 25+75 for 5-shot 5-way 15-query)
                 loss = F.cross_entropy(logits, label)
                 acc = count_acc(logits, label)
-                record[i-1, 0] = loss.item()
-                record[i-1, 1] = acc
+                losses.append(loss.item())
+                accuracies.append(acc)
 
                 if args.tst_free:
 
@@ -288,12 +291,11 @@ class FSLTrainer(Trainer):
 
                 if args.debug_fast:
                     print('Debug fast, breaking eval after 1 mini-batch')
-                    record = record[:1]  # truncate summaries
                     break
 
-        assert(i == record.shape[0])
-        vl, _ = compute_confidence_interval(record[:,0])
-        va, vap = compute_confidence_interval(record[:,1])
+        assert(i == len(losses) and i == len(accuracies))
+        vl, _ = compute_confidence_interval(losses)
+        va, vap = compute_confidence_interval(accuracies)
         metric_summaries = {key: compute_confidence_interval(val) for key, val in metrics.items()}
 
         # train mode
