@@ -6,15 +6,10 @@ from model.utils import (
     get_command_line_parser,
     postprocess_args,
 )
+import pdb, sys, traceback
 # from ipdb import launch_ipdb_on_exception
 
-if __name__ == '__main__':
-    parser = get_command_line_parser()
-    args = postprocess_args(parser.parse_args())
-    # with launch_ipdb_on_exception():
-    pprint(vars(args))
-
-    set_gpu(args.gpu)
+def main(args):
     if args.tst_free:
         trainer = FSLTrainer(args)
         trainer.train()
@@ -25,5 +20,22 @@ if __name__ == '__main__':
 
     print(args.save_path)
 
+if __name__ == '__main__':
+    parser = get_command_line_parser()
+    args = postprocess_args(parser.parse_args())
+    # with launch_ipdb_on_exception():
+    pprint(vars(args))
+
+    set_gpu(args.gpu)
+
+    if args.debug_fast:
+        try:
+            main(args)
+        except:
+            extype, value, tb = sys.exc_info()
+            traceback.print_exc()
+            pdb.post_mortem(tb)
+    else:
+        main(args)
 
 
