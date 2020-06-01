@@ -139,7 +139,7 @@ class FSLTrainer(Trainer):
 
                 stats = OrderedDict()
                 stats['epoch'] = self.train_epoch
-                stats['{}_SupervisedAcc'.format(split)] = vl
+                stats['{}_SupervisedAcc'.format(split)] = va
                 stats['{}_SupervisedAcc_interval'.format(split)] = vap
                 stats['{}_SupervisedLoss'.format(split)] = vl
                 for key, (val, ci) in metrics.items():
