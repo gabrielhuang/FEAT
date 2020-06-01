@@ -26,7 +26,8 @@ if __name__ == '__main__':
     # with launch_ipdb_on_exception():
     pprint(vars(args))
 
-    set_gpu(args.gpu)
+    # We will set CUDA_VISIBLE_DEVICES in the terminal
+    #set_gpu(args.gpu)
 
     if args.debug_fast:
         try:
