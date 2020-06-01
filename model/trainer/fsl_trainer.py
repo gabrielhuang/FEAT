@@ -339,7 +339,7 @@ class FSLTrainer(Trainer):
             label = label.cuda()
         all_labels = torch.arange(args.eval_way, device=label.device).repeat(args.eval_shot + args.eval_query)
 
-        max_validation_str = 'valid_{} {:.4f} + {:.4f} (maximized at ep{})\n'.format(
+        max_validation_str = 'Maximum value of valid_{} {:.4f} + {:.4f} reached at Epoch {}\n'.format(
                 criterion,
                 self.trlog[max_acc],
                 self.trlog[max_acc_interval],
