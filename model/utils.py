@@ -185,5 +185,10 @@ def get_command_line_parser():
     parser.add_argument('--tst_free', type=int, default=0, help='flag to activate tst statistics')
     parser.add_argument('--tst_criterion', type=str, default='', help='criterion for selecting best model')
     parser.add_argument('--sinkhorn_reg', type=float, default=1., help='regularization for sinkhorn k-means')
+
+    # general params for debugging & running
     parser.add_argument('--debug_fast', type=int, default=0, help='one batch per epoch for fast debugging')
+    parser.add_argument('--eval_only', type=int, default=0, help='evaluate only')
+
+
     return parser

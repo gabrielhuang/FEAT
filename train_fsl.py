@@ -16,9 +16,12 @@ if __name__ == '__main__':
 
     set_gpu(args.gpu)
     trainer = FSLTrainer(args)
+
     trainer.train()
-    trainer.evaluate_test()
-    trainer.final_record()
+    if args.tst_criterion:
+        trainer.evaluate_test(use_max_tst=True)
+    trainer.evaluate_test(use_max_tst=False)
+
     print(args.save_path)
 
 

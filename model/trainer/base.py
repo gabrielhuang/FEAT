@@ -31,6 +31,13 @@ class Trainer(object, metaclass=abc.ABCMeta):
         self.trlog['max_acc_epoch'] = 0
         self.trlog['max_acc_interval'] = 0.0
 
+        # For tst
+        if args.tst_free:
+            self.trlog['max_tst_criterion'] = 0.0
+            self.trlog['max_tst_criterion_interval'] = 0.
+            self.trlog['max_tst_criterion_epoch'] = 0
+            self.trlog['tst_criterion'] = args.tst_criterion
+
     @abc.abstractmethod
     def train(self):
         pass
@@ -79,7 +86,17 @@ class Trainer(object, metaclass=abc.ABCMeta):
                 self.save_model('max_acc')
 
             # Probably a different criterion for TST -> optimize here.
-            print('TODO: save best TST criterion')
+            if args.tst_free and args.tst_criterion:
+                assert args.tst_criterion in metrics, 'Criterion {} not found in {}'.format(args.tst_criterion, metrics.keys())
+                criterion, criterion_interval = metrics[args.tst_criterion]
+                if criterion >= self.trlog['max_tst_criterion']:
+                    self.trlog['max_tst_criterion'] = criterion
+                    self.trlog['max_tst_criterion_interval'] = criterion_interval
+                    self.trlog['max_tst_criterion_epoch'] = self.train_epoch
+                    self.save_model('max_tst_criterion')
+                    print('Found new best model at Epoch {} : Validation {} = {:.4f} +/- {:4f}'.format(
+                        self.train_epoch, args.tst_criterion, criterion, criterion_interval))
+
 
     def try_logging(self, tl1, tl2, ta, tg=None):
         args = self.args

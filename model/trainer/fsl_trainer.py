@@ -184,11 +184,34 @@ class FSLTrainer(Trainer):
         else:
             return vl, va, vap
 
-    def evaluate_test(self):
+    def evaluate_test(self, use_max_tst=False):
         # restore model args
         args = self.args
         # evaluation mode
-        self.model.load_state_dict(torch.load(osp.join(self.args.save_path, 'max_acc.pth'))['params'])
+
+        if use_max_tst:
+            assert args.tst_criterion != '', 'Please specify a criterion'
+            fname = osp.join(self.args.save_path, 'max_tst_criterion.pth')
+            criterion = args.tst_criterion
+            max_acc_epoch = 'max_tst_criterion_epoch'
+            max_acc = 'max_tst_criterion'
+            max_acc_interval = 'max_tst_criterion_interval'
+            test_acc = 'test_acc_at_max_criterion'
+            test_acc_interval = 'test_acc_interval_at_max_criterion'
+            test_loss = 'test_loss_at_max_criterion'
+        else:
+            fname = osp.join(self.args.save_path, 'max_acc.pth')
+            criterion = 'SupervisedAcc'
+            max_acc_epoch = 'max_acc_epoch'
+            max_acc = 'max_acc'
+            max_acc_interval = 'max_acc_interval'
+            test_acc = 'test_acc'
+            test_acc_interval = 'test_acc_interval'
+            test_loss = 'test_loss'
+        print('\nCriterion selected: {}'.format(criterion))
+        print('Reloading model from {}'.format(fname))
+        self.model.load_state_dict(torch.load(fname)['params'])
+
         self.model.eval()
         record = np.zeros((10000, 2)) # loss and acc
         metrics = defaultdict(list)  # all other metrics
@@ -197,10 +220,14 @@ class FSLTrainer(Trainer):
         if torch.cuda.is_available():
             label = label.cuda()
         all_labels = torch.arange(args.eval_way, device=label.device).repeat(args.eval_shot + args.eval_query)
-        print('best epoch {}, best val acc={:.4f} + {:.4f}'.format(
-                self.trlog['max_acc_epoch'],
-                self.trlog['max_acc'],
-                self.trlog['max_acc_interval']))
+
+        max_validation_str = 'valid_{} {:.4f} + {:.4f} (maximized at ep{})\n'.format(
+                criterion,
+                self.trlog[max_acc],
+                self.trlog[max_acc_interval],
+                 self.trlog[max_acc_epoch])
+        print(max_validation_str)
+
         with torch.no_grad():
             for i, batch in tqdm(enumerate(self.test_loader, 1)):
                 if torch.cuda.is_available():
@@ -239,39 +266,29 @@ class FSLTrainer(Trainer):
         va, vap = compute_confidence_interval(record[:,1])
         metric_summaries = {key: compute_confidence_interval(val) for key, val in metrics.items()}
 
-        self.trlog['test_acc'] = va
-        self.trlog['test_acc_interval'] = vap
-        self.trlog['test_loss'] = vl
+        self.trlog[test_acc] = va
+        self.trlog[test_acc_interval] = vap
+        self.trlog[test_loss] = vl
 
-        print('best epoch {}, best val acc={:.4f} + {:.4f}\n'.format(
-                self.trlog['max_acc_epoch'],
-                self.trlog['max_acc'],
-                self.trlog['max_acc_interval']))
-        print('Test acc={:.4f} + {:.4f}\n'.format(
-                self.trlog['test_acc'],
-                self.trlog['test_acc_interval']))
+        summary_lines = []
+        summary_lines.append(max_validation_str)
+        summary_lines.append('test_SupervisedAcc {:.4f} + {:.4f} (ep{})'.format(
+                self.trlog[test_acc],
+                self.trlog[test_acc_interval],
+                self.trlog[max_acc_epoch]))
+        if 'TST' in self.trlog:
+            for key, (mean, std) in self.trlog['TST'].items():
+                summary_lines.append('test_{} {:.4f} + {:.4f} (ep{})'.format(key, mean, std, self.trlog[max_acc_epoch]))
 
-        self.print_metric_summaries(metric_summaries, prefix='\ttest_')
-        self.log_metric_summaries(metric_summaries, 0, prefix='test_')
+        #self.print_metric_summaries(metric_summaries, prefix='\ttest_')
+        #self.log_metric_summaries(metric_summaries, 0, prefix='test_')
         self.trlog['TST'] = metric_summaries
 
-        if args.tst_free:
-            return vl, va, vap, metric_summaries
-        else:
-            return vl, va, vap
-    
-    def final_record(self):
-        # save the best performance in a txt file
-        
-        with open(osp.join(self.args.save_path, 'summary.txt'), 'w') as f:
-            f.write('best epoch {}, best val acc={:.4f} + {:.4f}\n'.format(
-                self.trlog['max_acc_epoch'],
-                self.trlog['max_acc'],
-                self.trlog['max_acc_interval']))
-            f.write('Test acc={:.4f} + {:.4f}\n'.format(
-                self.trlog['test_acc'],
-                self.trlog['test_acc_interval']))
+        summary_lines_str = '\n'.join(summary_lines)
+        print('\n{}'.format(summary_lines_str))
 
-            if 'TST' in self.trlog:
-                for key, (mean, std) in self.trlog['TST'].items():
-                    f.write('\tTST test {} {:.4f} +/- {:.4f}\n'.format(key, mean, std))
+        with open(osp.join(self.args.save_path, 'summary_max_{}.txt'.format(criterion)), 'w') as f:
+            f.write(summary_lines_str)
+
+    def final_record(self):
+        pass
