@@ -41,10 +41,16 @@ def get_dataloader(args):
     if args.dataset == 'MiniImageNet':
         # Handle MiniImageNet
         from model.dataloader.mini_imagenet import MiniImageNet as Dataset
+        evalDataset = Dataset
     elif args.dataset == 'CUB':
         from model.dataloader.cub import CUB as Dataset
+        evalDataset = Dataset
     elif args.dataset == 'TieredImageNet':
         from model.dataloader.tiered_imagenet import tieredImageNet as Dataset
+        evalDataset = Dataset
+    elif args.dataset == 'MiniImageNet2CUB':
+        from model.dataloader.mini_imagenet import MiniImageNet as Dataset
+        from model.dataloader.mini_imagenet import CUB as evalDataset
     else:
         raise ValueError('Non-supported Dataset.')
 
@@ -67,7 +73,7 @@ def get_dataloader(args):
         #train_loader = MultiGPUDataloader(train_loader, num_device)
         #args.way = args.way * num_device
 
-    valset = Dataset('val', args)
+    valset = evalDataset('val', args)
     val_sampler = CategoriesSampler(valset.label,
                             args.num_eval_episodes,
                             args.eval_way, args.eval_shot + args.eval_query)
@@ -77,7 +83,7 @@ def get_dataloader(args):
                             pin_memory=True)
     
     
-    testset = Dataset('test', args)
+    testset = evalDataset('test', args)
     test_sampler = CategoriesSampler(testset.label,
                             args.num_test_episodes,
                             args.eval_way, args.eval_shot + args.eval_query)

@@ -153,7 +153,7 @@ def get_command_line_parser():
     parser.add_argument('--backbone_class', type=str, default='Res12',
                         choices=['ConvNet', 'Res12', 'Res18', 'WRN'])
     parser.add_argument('--dataset', type=str, default='MiniImageNet',
-                        choices=['MiniImageNet', 'TieredImageNet', 'CUB'])
+                        choices=['MiniImageNet', 'TieredImageNet', 'CUB', 'MiniImageNet2CUB'])
     
     parser.add_argument('--way', type=int, default=5)
     parser.add_argument('--eval_way', type=int, default=5)

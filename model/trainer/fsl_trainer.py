@@ -18,6 +18,7 @@ from model.utils import (
 from collections import defaultdict, OrderedDict
 from tqdm import tqdm
 import json
+import os
 
 class FSLTrainer(Trainer):
     def __init__(self, args):
@@ -158,8 +159,13 @@ class FSLTrainer(Trainer):
                     pass
 
             # dump the metrics
-            with open(osp.join(self.args.save_path, 'eval.jl'), 'a') as fp:
+            eval_file = osp.join(self.args.save_path, 'eval.jl')
+            with open(eval_file, 'a') as fp:
+                print('Writing stats to file {}'.format(eval_file))
                 fp.write('{}\n'.format(json.dumps(stats)))
+                # really force flush
+                fp.flush()
+                os.fsync(fp)
 
     def train_original(self):
         args = self.args
