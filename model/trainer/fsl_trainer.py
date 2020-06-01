@@ -276,9 +276,8 @@ class FSLTrainer(Trainer):
                 self.trlog[test_acc],
                 self.trlog[test_acc_interval],
                 self.trlog[max_acc_epoch]))
-        if 'TST' in self.trlog:
-            for key, (mean, std) in self.trlog['TST'].items():
-                summary_lines.append('test_{} {:.4f} + {:.4f} (ep{})'.format(key, mean, std, self.trlog[max_acc_epoch]))
+        for key, (mean, std) in metric_summaries.items():
+            summary_lines.append('test_{} {:.4f} + {:.4f} (ep{})'.format(key, mean, std, self.trlog[max_acc_epoch]))
 
         #self.print_metric_summaries(metric_summaries, prefix='\ttest_')
         #self.log_metric_summaries(metric_summaries, 0, prefix='test_')
