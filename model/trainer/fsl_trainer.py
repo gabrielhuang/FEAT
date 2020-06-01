@@ -131,31 +131,35 @@ class FSLTrainer(Trainer):
         args = self.args
         if self.train_epoch % args.eval_interval == 0:
             print('*'*32)
+
+            stats = OrderedDict()
+            stats['epoch'] = self.train_epoch
+
             for split, loader in [('valid', self.val_loader), ('test', self.test_loader)]:
 
                 print('\nEpoch {} : Evaluating on {}'.format(self.train_epoch, split))
 
                 vl, va, vap, metrics = self.evaluate(self.val_loader)
-
-                stats = OrderedDict()
-                stats['epoch'] = self.train_epoch
-                stats['{}_SupervisedAcc'.format(split)] = va
-                stats['{}_SupervisedAcc_interval'.format(split)] = vap
-                stats['{}_SupervisedLoss'.format(split)] = vl
+                split_stats = OrderedDict()
+                split_stats['{}_SupervisedAcc'.format(split)] = va
+                split_stats['{}_SupervisedAcc_interval'.format(split)] = vap
+                split_stats['{}_SupervisedLoss'.format(split)] = vl
                 for key, (val, ci) in metrics.items():
-                    stats['{}_{}'.format(split, key)] = val
-                    stats['{}_{}_interval'.format(split, key)] = ci
+                    split_stats['{}_{}'.format(split, key)] = val
+                    split_stats['{}_{}_interval'.format(split, key)] = ci
 
-                # dump the metrics
-                with open(osp.join(self.args.save_path, 'eval.jl'), 'a') as fp:
-                    fp.write('{}\n'.format(json.dumps(stats)))
+                stats.update(split_stats)
 
-                text = ['{}={:.3f}'.format(key, val) for key, val in stats.items() if not key.endswith('_interval')]
+                text = ['{}={:.3f}'.format(key, val) for key, val in split_stats.items() if not key.endswith('_interval')]
                 print(' | '.join(text))
 
                 if split == 'valid':
                     # Do the best model thing
                     pass
+
+            # dump the metrics
+            with open(osp.join(self.args.save_path, 'eval.jl'), 'a') as fp:
+                fp.write('{}\n'.format(json.dumps(stats)))
 
     def train_original(self):
         args = self.args
