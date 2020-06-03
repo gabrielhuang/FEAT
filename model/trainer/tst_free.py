@@ -302,21 +302,21 @@ def clustering_loss(embedded_sample, regularization, clustering_type, normalize_
     # Transductive prediction, use sinkhorn
     cluster_weights = support_labels_onehot.t().sum(-1)
     cluster_freq = cluster_weights / cluster_weights.sum()
-    dst, P, log_P, log_u, log_v = compute_sinkhorn_stable(query_to_proto_dists,
+    __, __, log_P_dst, __, __ = compute_sinkhorn_stable(query_to_proto_dists,
                                                           regularization=regularization,
                                                           log_v=None,  # warm start after first iteration
                                                           c=cluster_freq,  # set cluster masses (None means uniform)
                                                           iterations=sinkhorn_iterations)
     # We take transport plan P as predictions
-    protonet_transductive_dst_acc = (log_P.max(-1)[1] == query_labels).float().mean().item()
+    protonet_transductive_dst_acc = (log_P_dst.max(-1)[1] == query_labels).float().mean().item()
 
     # Transductive with logprobs
-    dst, P, log_P, log_u, log_v = compute_sinkhorn_stable(-protonet_inductive_logits,
+    dst, P, log_P_prob, log_u, log_v = compute_sinkhorn_stable(-protonet_inductive_logits,
                                                           regularization=regularization,
                                                           log_v=None,  # warm start after first iteration
                                                           c=cluster_freq,  # set cluster masses (None means uniform)
                                                           iterations=sinkhorn_iterations)
-    protonet_transductive_prob_acc = (log_P.max(-1)[1] == query_labels).float().mean().item()
+    protonet_transductive_prob_acc = (log_P_prob.max(-1)[1] == query_labels).float().mean().item()
 
 
     # Assign support set points to centroids (using either Sinkhorn or Softmax)
