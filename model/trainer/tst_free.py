@@ -308,7 +308,15 @@ def clustering_loss(embedded_sample, regularization, clustering_type, normalize_
                                                           c=cluster_freq,  # set cluster masses (None means uniform)
                                                           iterations=sinkhorn_iterations)
     # We take transport plan P as predictions
-    protonet_transductive_acc = (log_P.max(-1)[1] == query_labels).float().mean().item()
+    protonet_transductive_dst_acc = (log_P.max(-1)[1] == query_labels).float().mean().item()
+
+    # Transductive with logprobs
+    dst, P, log_P, log_u, log_v = compute_sinkhorn_stable(-protonet_inductive_logits,
+                                                          regularization=regularization,
+                                                          log_v=None,  # warm start after first iteration
+                                                          c=cluster_freq,  # set cluster masses (None means uniform)
+                                                          iterations=sinkhorn_iterations)
+    protonet_transductive_prob_acc = (log_P.max(-1)[1] == query_labels).float().mean().item()
 
 
     # Assign support set points to centroids (using either Sinkhorn or Softmax)
@@ -365,7 +373,8 @@ def clustering_loss(embedded_sample, regularization, clustering_type, normalize_
     stats['UnsupervisedAcc_softmax'] = all_query_clustering_accuracy['softmax']
     stats['UnsupervisedAcc_sinkhorn'] = all_query_clustering_accuracy['sinkhorn']
     stats['ProtoInductiveAcc'] = protonet_inductive_acc
-    stats['ProtoTransductiveAcc'] = protonet_transductive_acc
+    stats['ProtoTransductiveDstAcc'] = protonet_transductive_dst_acc
+    stats['ProtoTransductiveProbAcc'] = protonet_transductive_prob_acc
     # Transductive
 
 
