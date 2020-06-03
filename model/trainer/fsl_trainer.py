@@ -284,7 +284,7 @@ class FSLTrainer(Trainer):
                     for sinkhorn_reg_str in args.sinkhorn_reg:  # loop over all possible regularizations
                         sinkhorn_reg_float = float(sinkhorn_reg_str)
                         clustering_losses = tst_free.clustering_loss(embeddings_dict, sinkhorn_reg_float, 'wasserstein',
-                                                                     temperature=np.sqrt(args.temperature),
+                                                                     sqrt_temperature=np.sqrt(args.temperature),
                                                                      normalize_by_dim=False,
                                                                      clustering_iterations=20, sinkhorn_iterations=20,
                                                                      sinkhorn_iterations_warmstart=4,
@@ -377,7 +377,7 @@ class FSLTrainer(Trainer):
 
                     # TST-free part
                     clustering_losses = tst_free.clustering_loss(embeddings_dict, args.sinkhorn_reg, 'wasserstein',
-                                                                 temperature=np.sqrt(args.temperature),
+                                                                 sqrt_temperature=np.sqrt(args.temperature),
                                                                  normalize_by_dim=False,
                                                                  clustering_iterations=20, sinkhorn_iterations=20,
                                                                  sinkhorn_iterations_warmstart=4,
