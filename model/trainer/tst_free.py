@@ -225,7 +225,7 @@ def cluster_kmeans(X, n_components, iterations=20, kmeansplusplus=False, epsilon
     return centroids
 
 
-def clustering_loss(embedded_sample, regularization, clustering_type, normalize_by_dim=False, temperature=None,
+def clustering_loss(embedded_sample, regularization, clustering_type, normalize_by_dim=False, sqrt_temperature=None,
                     clustering_iterations=20, sinkhorn_iterations=20, sinkhorn_iterations_warmstart=4,
                     sanity_check=False):
     '''
@@ -250,15 +250,15 @@ def clustering_loss(embedded_sample, regularization, clustering_type, normalize_
     :return:
     '''
 
-    assert not (normalize_by_dim and temperature is not None)
+    assert not (normalize_by_dim and sqrt_temperature is not None)
 
     # Embedding Shapes are (example, dims)
     z_support = embedded_sample['support_embeddings']  # support
     z_query = embedded_sample['query_embeddings']  # query
 
-    if temperature is not None:
-        z_support = z_support / np.sqrt(temperature)
-        z_query = z_query / np.sqrt(temperature)
+    if sqrt_temperature is not None:
+        z_support = z_support / sqrt_temperature
+        z_query = z_query / sqrt_temperature
 
     # Label Shapes are (example, ways)
     support_labels = embedded_sample['support_labels']
@@ -290,6 +290,26 @@ def clustering_loss(embedded_sample, regularization, clustering_type, normalize_
     # Pairwise distance from query set to centroids
     support_dists = euclidean_dist(z_support, z_centroid, normalize_by_dim)
     query_dists = euclidean_dist(z_query, z_centroid, normalize_by_dim)
+
+    # Classic protonet (this is for the transductive setting)
+    z_proto = torch.mm(support_labels_onehot.t(), z_support) / support_labels_onehot.t().sum(-1, keepdim=True)
+    assert normalize_by_dim is False, 'we have calibrated the temperatures with training, so use normalize_by_dim == False'
+    query_to_proto_dists = euclidean_dist(z_query, z_proto, normalize_by_dim)
+    # Inductive prediction
+    protonet_inductive_logits = F.log_softmax(-query_to_proto_dists, dim=-1)
+    protonet_inductive_acc = (protonet_inductive_logits.max(-1)[1] == query_labels).float().mean().item()
+
+    # Transductive prediction, use sinkhorn
+    cluster_weights = support_labels_onehot.t().sum(-1)
+    cluster_freq = cluster_weights / cluster_weights.sum()
+    dst, P, log_P, log_u, log_v = compute_sinkhorn_stable(query_to_proto_dists,
+                                                          regularization=regularization,
+                                                          log_v=None,  # warm start after first iteration
+                                                          c=cluster_freq,  # set cluster masses (None means uniform)
+                                                          iterations=sinkhorn_iterations)
+    # We take transport plan P as predictions
+    protonet_transductive_acc = (log_P.max(-1)[1] == query_labels).float().mean().item()
+
 
     # Assign support set points to centroids (using either Sinkhorn or Softmax)
     all_log_p_y_support = {}
@@ -344,4 +364,10 @@ def clustering_loss(embedded_sample, regularization, clustering_type, normalize_
     stats['ClusteringAcc_sinkhorn'] = all_support_clustering_accuracy['sinkhorn']
     stats['UnsupervisedAcc_softmax'] = all_query_clustering_accuracy['softmax']
     stats['UnsupervisedAcc_sinkhorn'] = all_query_clustering_accuracy['sinkhorn']
+    stats['ProtoInductiveAcc'] = protonet_inductive_acc
+    stats['ProtoTransductiveAcc'] = protonet_transductive_acc
+    # Transductive
+
+
+
     return stats
