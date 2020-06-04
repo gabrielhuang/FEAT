@@ -51,6 +51,9 @@ def get_dataloader(args):
     elif args.dataset == 'MiniImageNet2CUB':
         from model.dataloader.mini_imagenet import MiniImageNet as Dataset
         from model.dataloader.cub import CUB as evalDataset
+    elif args.dataset == 'CUB2MiniImageNet':
+        from model.dataloader.cub import CUB as Dataset
+        from model.dataloader.mini_imagenet import MiniImageNet as evalDataset
     else:
         raise ValueError('Non-supported Dataset.')
 
