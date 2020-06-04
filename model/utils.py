@@ -188,6 +188,7 @@ def get_command_line_parser():
 
     # task-supervision at test-time parameters
     parser.add_argument('--tst_free', type=int, default=0, help='flag to activate tst statistics')
+    parser.add_argument('--transductive', type=int, default=0, help='flag to activate transductive mode')
     parser.add_argument('--tst_criterion', type=str, default='', help='criterion for selecting best model')
     parser.add_argument('--sinkhorn_reg', type=str, default='1', help='comma separated regularizations')
 

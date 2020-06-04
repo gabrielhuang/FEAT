@@ -270,6 +270,21 @@ class FSLTrainer(Trainer):
 
                 embeddings, logits = self.model(data, return_feature=True)
 
+                if args.transductive:
+
+                    embeddings_logits_dict = self.model.get_embeddings_dict(embeddings, all_labels, logits)
+
+                    for sinkhorn_reg_str in args.sinkhorn_reg:  # loop over all possible regularizations
+                        sinkhorn_reg_float = float(sinkhorn_reg_str)
+
+                        transductive_losses = tst_free.transductive_from_logits(embeddings_logits_dict,
+                                                                                   regularization=sinkhorn_reg_float)
+
+                        for key, val in transductive_losses.items():
+                            key += '_reg{}'.format(sinkhorn_reg_str)
+                            metrics.setdefault(key, [])
+                            metrics[key].append(val)
+
                 # data contains both support and query sets (typically 25+75 for 5-shot 5-way 15-query)
                 loss = F.cross_entropy(logits, label)
                 acc = count_acc(logits, label)
@@ -277,6 +292,9 @@ class FSLTrainer(Trainer):
                 accuracies.append(acc)
 
                 if args.tst_free:
+
+                    # Also do the transductive based on the logits
+
 
                     embeddings_dict = self.model.get_embeddings_dict(embeddings, all_labels)
 

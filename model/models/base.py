@@ -36,7 +36,7 @@ class FewShotModel(nn.Module):
             return  (torch.Tensor(np.arange(args.eval_way*args.eval_shot)).long().view(1, args.eval_shot, args.eval_way), 
                      torch.Tensor(np.arange(args.eval_way*args.eval_shot, args.eval_way * (args.eval_shot + args.eval_query))).long().view(1, args.eval_query, args.eval_way))
 
-    def get_embeddings_dict(self, embeddings, all_labels):
+    def get_embeddings_dict(self, embeddings, all_labels, logits=None):
         support_idx, query_idx = self.split_instances()
 
         support_embeddings = embeddings[support_idx.flatten()]
@@ -51,8 +51,7 @@ class FewShotModel(nn.Module):
 
         support_labels_onehot = label_onehot[support_idx.flatten()]
         query_labels_onehot = label_onehot[query_idx.flatten()]
-
-        return {
+        d = {
             'support_embeddings': support_embeddings,
             'query_embeddings': query_embeddings,
             'support_labels': support_labels,
@@ -61,6 +60,12 @@ class FewShotModel(nn.Module):
             'query_labels_onehot': query_labels_onehot,
             'way': way
         }
+
+        if logits is not None:
+            d['support_logits'] = logits[support_idx.flatten()]
+            d['query_logits'] = logits[query_idx.flatten()]
+
+        return d
 
 
     def forward(self, x, get_feature=False, return_feature=False):

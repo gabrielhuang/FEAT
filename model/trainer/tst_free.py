@@ -224,6 +224,18 @@ def cluster_kmeans(X, n_components, iterations=20, kmeansplusplus=False, epsilon
     centroids = centroids_flat.view(size)
     return centroids
 
+def transductive_from_logits(embeddings_logits_dict, regularization, sinkhorn_iterations=40):
+    query_labels = embeddings_logits_dict['query_labels']
+    query_logits = embeddings_logits_dict['query_logits']
+    dst, P, log_P_prob, log_u, log_v = compute_sinkhorn_stable(-query_logits,
+                                                               regularization=regularization,
+                                                               log_v=None,
+                                                               # set cluster masses (None means uniform)
+                                                               iterations=sinkhorn_iterations)
+    transductive_prob_acc = (log_P_prob.max(-1)[1] == query_labels).float().mean().item()
+    return {'LogitsTransductiveAcc': transductive_prob_acc }
+
+
 
 def clustering_loss(embedded_sample, regularization, clustering_type, normalize_by_dim=False, sqrt_temperature=None,
                     clustering_iterations=20, sinkhorn_iterations=20, sinkhorn_iterations_warmstart=4,
