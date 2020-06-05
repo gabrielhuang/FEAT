@@ -135,8 +135,7 @@ def postprocess_args(args):
         save_path2 += '-FBN'
     if not args.augment:
         save_path2 += '-NoAug'
-    if args.transductive:
-        save_path2 += '-Trans'
+
             
     if not os.path.exists(os.path.join(args.save_dir, save_path1)):
         os.makedirs(os.path.join(args.save_dir, save_path1))

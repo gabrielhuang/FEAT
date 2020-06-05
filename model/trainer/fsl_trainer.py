@@ -45,7 +45,7 @@ class FSLTrainer(Trainer):
         return label, label_aux
 
     def train(self):
-        if self.args.tst_free:
+        if self.args.tst_free :
             return self.train_tst()
         else:
             return self.train_original()
@@ -270,8 +270,7 @@ class FSLTrainer(Trainer):
 
                 embeddings, logits = self.model(data, return_feature=True)
 
-                if args.transductive:
-
+                if args.tst_free:
                     embeddings_logits_dict = self.model.get_embeddings_dict(embeddings, all_labels, logits)
 
                     for sinkhorn_reg_str in args.sinkhorn_reg:  # loop over all possible regularizations
