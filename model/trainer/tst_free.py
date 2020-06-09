@@ -227,7 +227,8 @@ def cluster_kmeans(X, n_components, iterations=20, kmeansplusplus=False, epsilon
 def transductive_from_logits(embeddings_logits_dict, regularization, sinkhorn_iterations=40):
     query_labels = embeddings_logits_dict['query_labels']
     query_logits = embeddings_logits_dict['query_logits']
-    dst, P, log_P_prob, log_u, log_v = compute_sinkhorn_stable(-query_logits,
+    query_lobprob = F.softmax(query_logits, dim=-1)
+    dst, P, log_P_prob, log_u, log_v = compute_sinkhorn_stable(-query_lobprob,
                                                                regularization=regularization,
                                                                log_v=None,
                                                                # set cluster masses (None means uniform)
@@ -308,8 +309,8 @@ def clustering_loss(embedded_sample, regularization, clustering_type, normalize_
     assert normalize_by_dim is False, 'we have calibrated the temperatures with training, so use normalize_by_dim == False'
     query_to_proto_dists = euclidean_dist(z_query, z_proto, normalize_by_dim)
     # Inductive prediction
-    protonet_inductive_logits = F.log_softmax(-query_to_proto_dists, dim=-1)
-    protonet_inductive_acc = (protonet_inductive_logits.max(-1)[1] == query_labels).float().mean().item()
+    protonet_inductive_logprob = F.log_softmax(-query_to_proto_dists, dim=-1)
+    protonet_inductive_acc = (protonet_inductive_logprob.max(-1)[1] == query_labels).float().mean().item()
 
     # Transductive prediction, use sinkhorn
     cluster_weights = support_labels_onehot.t().sum(-1)
@@ -323,7 +324,7 @@ def clustering_loss(embedded_sample, regularization, clustering_type, normalize_
     protonet_transductive_dst_acc = (log_P_dst.max(-1)[1] == query_labels).float().mean().item()
 
     # Transductive with logprobs
-    dst, P, log_P_prob, log_u, log_v = compute_sinkhorn_stable(-protonet_inductive_logits,
+    dst, P, log_P_prob, log_u, log_v = compute_sinkhorn_stable(-protonet_inductive_logprob,
                                                           regularization=regularization,
                                                           log_v=None,  # warm start after first iteration
                                                           c=cluster_freq,  # set cluster masses (None means uniform)
