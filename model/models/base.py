@@ -62,8 +62,8 @@ class FewShotModel(nn.Module):
         }
 
         if logits is not None:
-            d['support_logits'] = logits[support_idx.flatten()]
-            d['query_logits'] = logits[query_idx.flatten()]
+            # only query logits are given
+            d['query_logits'] = logits
 
         return d
 

@@ -227,8 +227,8 @@ def cluster_kmeans(X, n_components, iterations=20, kmeansplusplus=False, epsilon
 def transductive_from_logits(embeddings_logits_dict, regularization, sinkhorn_iterations=40):
     query_labels = embeddings_logits_dict['query_labels']
     query_logits = embeddings_logits_dict['query_logits']
-    query_lobprob = F.log_softmax(query_logits, dim=-1)
-    dst, P, log_P_prob, log_u, log_v = compute_sinkhorn_stable(-query_lobprob,
+    query_logprob = F.log_softmax(query_logits, dim=-1)
+    dst, P, log_P_prob, log_u, log_v = compute_sinkhorn_stable(-query_logprob,
                                                                regularization=regularization,
                                                                log_v=None,
                                                                # set cluster masses (None means uniform)
