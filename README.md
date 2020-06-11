@@ -1,4 +1,31 @@
-# Few-Shot Learning via Embedding Adaptation with Set-to-Set Functions
+# Are Few-Shot Learning Benchmarks too Simple ? Solving them without Test-Time Labels
+
+This is the code repository for the experiments of the paper "Are Few-Shot Learning Benchmarks too Simple ? Solving them without Test-Time Labels". 
+
+Thanks to the authors of the FEAT paper for releasing their code, on which we have based our experiments. The original README is below.
+
+## Same-Domain Experiments
+
+
+
+```bash
+
+```
+
+
+
+
+
+## Cross-Domain Experiments
+
+
+
+
+
+
+
+
+# Original README
 
 The code repository for "[Few-Shot Learning via Embedding Adaptation with Set-to-Set Functions](https://arxiv.org/abs/1812.03664)" (Accepted by CVPR 2020) in PyTorch. If you use any content of this repo for your work, please cite the following bib entry:
 
