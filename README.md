@@ -7,9 +7,9 @@ Thanks to the authors of the FEAT paper for releasing their code, on which we ha
 ## Same-Domain Experiments
 
 
-
+Conv-4 CUB
 ```bash
-
+ python train_fsl.py --max_epoch 200 --model_class ProtoNet --use_euclidean --backbone_class ConvNet --dataset CUB --way 5 --eval_way 5 --shot 5 --eval_shot 5 --query 15 --eval_query 15 --balance 0.1 --temperature 32 --temperature2 64 --lr 0.0001 --lr_mul 10 --lr_scheduler step --step_size 20 --gamma 0.5 --init_weights ./saves/initialization/cub/con-pre.pth --eval_interval 1 --tst_free 1 --tst_criterion UnsupervisedAcc_softmax --sinkhorn_reg "0.03,0.1,0.3,1,3,10,30"
 ```
 
 
