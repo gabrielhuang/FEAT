@@ -5,13 +5,14 @@ This is the code repository for the experiments of the paper "Are Few-Shot Learn
 Thanks to the authors of the FEAT paper for releasing their code, on which we have based our experiments. The original README is below.
 
 For all experiments, we run `python train_fsl.py` with different arguments.
-During or after the few-shot learning finetuning, run the summarization script on the `eval.jl` file.
+During or after the few-shot learning finetuning, run the summarization script on the appropriate `eval.jl` file.
 For instance,
 ```bash
 python summarize.py checkpoints/CUB-ProtoNet-ConvNet-05w05s15q-Pre-DIS/20_0.5_lr0.0001mul10_step_T132.0T264.0_b0.1_bsz100-NoAug/eval.jl
 ```
-The script reports best validation scores and test scores at the epoch with best validation scores.
-
+- For validation scores, First/Second/Third column are Lowest/Highest/Average validation score. 
+- For Test scores, First/Second column are test scores reported from validation epoch with Lowest/Highest validation score.
+Third column is average test score over epochs.
 
 ## Same-Domain Experiments
 
