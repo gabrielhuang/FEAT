@@ -4,6 +4,15 @@ This is the code repository for the experiments of the paper "Are Few-Shot Learn
 
 Thanks to the authors of the FEAT paper for releasing their code, on which we have based our experiments. The original README is below.
 
+For all experiments, we run `python train_fsl.py` with different arguments.
+During or after the few-shot learning finetuning, run the summarization script on the `eval.jl` file.
+For instance,
+```bash
+python summarize.py checkpoints/CUB-ProtoNet-ConvNet-05w05s15q-Pre-DIS/20_0.5_lr0.0001mul10_step_T132.0T264.0_b0.1_bsz100-NoAug/eval.jl
+```
+The script reports best validation scores and test scores at the epoch with best validation scores.
+
+
 ## Same-Domain Experiments
 
 
@@ -13,13 +22,18 @@ Thanks to the authors of the FEAT paper for releasing their code, on which we ha
 ```
 
 Output
-```bash
-valid_SupervisedAcc                                0.7335+0.0071 (ep0)   0.8046+0.0061 (ep49)  Mean    0.7893 test_SupervisedAcc                                 0.6791+0.0072 (ep0)   0.7533+0.0071 (ep49)  Mean    0.7448
-valid_UnsupervisedAcc_softmax_reg1                 0.6100+0.0103 (ep0)   0.7256+0.0094 (ep62)  Mean    0.7028 test_UnsupervisedAcc_softmax_reg1                  0.5372+0.0106 (ep0)   0.6613+0.0108 (ep62)  Mean    0.6398
-valid_ClusteringAcc_sinkhorn_reg1                  0.7053+0.0095 (ep0)   0.7946+0.0094 (ep46)  Mean    0.7760 test_ClusteringAcc_sinkhorn_reg1                   0.6433+0.0093 (ep0)   0.7362+0.0100 (ep46)  Mean    0.7248
-valid_ProtoTransductiveProbAcc_reg1                0.7529+0.0072 (ep0)   0.8236+0.0061 (ep49)  Mean    0.8094 test_ProtoTransductiveProbAcc_reg1                 0.6983+0.0073 (ep0)   0.7735+0.0069 (ep49)  Mean    0.7654
-valid_ProtoTransductiveDstAcc_reg1                 0.7529+0.0072 (ep0)   0.8236+0.0061 (ep49)  Mean    0.8094 test_ProtoTransductiveDstAcc_reg1                  0.6983+0.0073 (ep0)   0.7735+0.0069 (ep49)  Mean    0.7654
-```
+<pre>
+valid_SupervisedAcc                                0.7335+0.0071 (ep0)   0.8046+0.0061 (ep49)  Mean    0.7893
+test_SupervisedAcc                                 0.6791+0.0072 (ep0)   <b>0.7533+0.0071</b> (ep49)  Mean    0.7448
+valid_UnsupervisedAcc_softmax_reg1                 0.6100+0.0103 (ep0)   0.7256+0.0094 (ep62)  Mean    0.7028
+test_UnsupervisedAcc_softmax_reg1                  0.5372+0.0106 (ep0)   <b>0.6613+0.0108</b> (ep62)  Mean    0.6398
+valid_ClusteringAcc_sinkhorn_reg1                  0.7053+0.0095 (ep0)   0.7946+0.0094 (ep46)  Mean    0.7760
+test_ClusteringAcc_sinkhorn_reg1                   0.6433+0.0093 (ep0)   0.7362+0.0100 (ep46)  Mean    0.7248
+valid_ProtoTransductiveProbAcc_reg1                0.7529+0.0072 (ep0)   0.8236+0.0061 (ep49)  Mean    0.8094
+test_ProtoTransductiveProbAcc_reg1                 0.6983+0.0073 (ep0)   0.7735+0.0069 (ep49)  Mean    0.7654
+valid_ProtoTransductiveDstAcc_reg1                 0.7529+0.0072 (ep0)   0.8236+0.0061 (ep49)  Mean    0.8094
+test_ProtoTransductiveDstAcc_reg1                  0.6983+0.0073 (ep0)   0.7735+0.0069 (ep49)  Mean    0.7654
+</pre>
 
 ### miniImageNet Conv-4
 ```bash
@@ -27,13 +41,19 @@ python train_fsl.py  --max_epoch 20 --model_class ProtoNet --use_euclidean --bac
 ```
 
 Output
-```bash
-valid_SupervisedAcc                                0.6660+0.0070 (ep2)   0.6828+0.0066 (ep5)   Mean    0.6768 test_SupervisedAcc                                 0.7036+0.0066 (ep2)   0.7072+0.0066 (ep5)   Mean    0.7025
-valid_UnsupervisedAcc_softmax_reg3                 0.5244+0.0092 (ep0)   0.5486+0.0094 (ep8)   Mean    0.5377 test_UnsupervisedAcc_softmax_reg3                  0.5696+0.0093 (ep0)   0.5757+0.0094 (ep8)   Mean    0.5768
-valid_ClusteringAcc_softmax_reg3                   0.6314+0.0086 (ep0)   0.6314+0.0086 (ep0)   Mean    0.6314 test_ClusteringAcc_softmax_reg3                    0.5887+0.0082 (ep0)   0.5887+0.0082 (ep0)   Mean    0.5887
-valid_ProtoTransductiveProbAcc_reg3                0.6810+0.0071 (ep2)   0.6988+0.0069 (ep7)   Mean    0.6926 test_ProtoTransductiveProbAcc_reg3                 0.7176+0.0067 (ep2)   0.7176+0.0067 (ep7)   Mean    0.7186
-valid_ProtoTransductiveDstAcc_reg3                 0.6810+0.0071 (ep2)   0.6988+0.0069 (ep7)   Mean    0.6926 test_ProtoTransductiveDstAcc_reg3                  0.7176+0.0067 (ep2)   0.7176+0.0067 (ep7)   Mean    0.7186
-```
+<pre>
+valid_SupervisedAcc                                0.6660+0.0070 (ep2)   0.6828+0.0066 (ep5)   Mean    0.6768 
+test_SupervisedAcc                                 0.7036+0.0066 (ep2)   <b>0.7072+0.0066</b> (ep5)   Mean    0.7025
+valid_UnsupervisedAcc_softmax_reg3                 0.5244+0.0092 (ep0)   0.5486+0.0094 (ep8)   Mean    0.5377 
+test_UnsupervisedAcc_softmax_reg3                  0.5696+0.0093 (ep0)   <b>0.5757+0.0094</b> (ep8)   Mean    0.5768
+valid_ClusteringAcc_softmax_reg3                   0.6314+0.0086 (ep0)   0.6314+0.0086 (ep0)   Mean    0.6314 
+test_ClusteringAcc_softmax_reg3                    0.5887+0.0082 (ep0)   0.5887+0.0082 (ep0)   Mean    0.5887
+valid_ProtoTransductiveProbAcc_reg3                0.6810+0.0071 (ep2)   0.6988+0.0069 (ep7)   Mean    0.6926
+test_ProtoTransductiveProbAcc_reg3                 0.7176+0.0067 (ep2)   0.7176+0.0067 (ep7)   Mean    0.7186
+valid_ProtoTransductiveDstAcc_reg3                 0.6810+0.0071 (ep2)   0.6988+0.0069 (ep7)   Mean    0.6926 
+test_ProtoTransductiveDstAcc_reg3                  0.7176+0.0067 (ep2)   0.7176+0.0067 (ep7)   Mean    0.7186
+</pre>
+
 
 ### miniImageNet ResNet-12
 
@@ -42,13 +62,18 @@ python train_fsl.py  --max_epoch 20 --model_class ProtoNet  --backbone_class Res
 ```
 
 Output
-```bash
-valid_SupervisedAcc                                0.8155+0.0058 (ep7)   0.8292+0.0053 (ep2)   Mean    0.8227 test_SupervisedAcc                                 0.7910+0.0061 (ep7)   0.8040+0.0057 (ep2)   Mean    0.7966
-valid_UnsupervisedAcc_softmax_reg10                0.7302+0.0096 (ep9)   0.7490+0.0094 (ep2)   Mean    0.7405 test_UnsupervisedAcc_softmax_reg10                 0.6787+0.0088 (ep9)   0.6986+0.0094 (ep2)   Mean    0.6928
-valid_ClusteringAcc_softmax_reg10                  0.7959+0.0095 (ep7)   0.8108+0.0095 (ep0)   Mean    0.8023 test_ClusteringAcc_softmax_reg10                   0.7600+0.0091 (ep7)   0.7733+0.0092 (ep0)   Mean    0.7673
-valid_ProtoTransductiveProbAcc_reg10               0.8373+0.0057 (ep7)   0.8542+0.0051 (ep2)   Mean    0.8464 test_ProtoTransductiveProbAcc_reg10                0.8130+0.0061 (ep7)   0.8279+0.0057 (ep2)   Mean    0.8198
-valid_ProtoTransductiveDstAcc_reg10                0.8373+0.0057 (ep7)   0.8542+0.0051 (ep2)   Mean    0.8464 test_ProtoTransductiveDstAcc_reg10                 0.8130+0.0061 (ep7)   0.8279+0.0057 (ep2)   Mean    0.8198
-```
+<pre>
+valid_SupervisedAcc                                0.8155+0.0058 (ep7)   0.8292+0.0053 (ep2)   Mean    0.8227 
+test_SupervisedAcc                                 0.7910+0.0061 (ep7)   <b>0.8040+0.0057</b> (ep2)   Mean    0.7966
+valid_UnsupervisedAcc_softmax_reg10                0.7302+0.0096 (ep9)   0.7490+0.0094 (ep2)   Mean    0.7405 
+test_UnsupervisedAcc_softmax_reg10                 0.6787+0.0088 (ep9)   <b>0.6986+0.0094</b> (ep2)   Mean    0.6928
+valid_ClusteringAcc_softmax_reg10                  0.7959+0.0095 (ep7)   0.8108+0.0095 (ep0)   Mean    0.8023 
+test_ClusteringAcc_softmax_reg10                   0.7600+0.0091 (ep7)   0.7733+0.0092 (ep0)   Mean    0.7673
+valid_ProtoTransductiveProbAcc_reg10               0.8373+0.0057 (ep7)   0.8542+0.0051 (ep2)   Mean    0.8464
+test_ProtoTransductiveProbAcc_reg10                0.8130+0.0061 (ep7)   0.8279+0.0057 (ep2)   Mean    0.8198
+valid_ProtoTransductiveDstAcc_reg10                0.8373+0.0057 (ep7)   0.8542+0.0051 (ep2)   Mean    0.8464
+test_ProtoTransductiveDstAcc_reg10                 0.8130+0.0061 (ep7)   0.8279+0.0057 (ep2)   Mean    0.8198
+</pre>
 
 ### tieredImageNet ResNet-12
 
@@ -57,30 +82,42 @@ python train_fsl.py  --max_epoch 20 --model_class ProtoNet  --backbone_class Res
 ```
 
 Output
-```bash
-valid_SupervisedAcc                                0.8083+0.0068 (ep5)   0.8186+0.0065 (ep0)   Mean    0.8140 test_SupervisedAcc                                 0.8343+0.0065 (ep5)   0.8424+0.0065 (ep0)   Mean    0.8363
-valid_UnsupervisedAcc_softmax_reg3                 0.7020+0.0112 (ep6)   0.7265+0.0101 (ep2)   Mean    0.7148 test_UnsupervisedAcc_softmax_reg3                  0.7542+0.0105 (ep6)   0.7536+0.0104 (ep2)   Mean    0.7559
-valid_ClusteringAcc_softmax_reg3                   0.7683+0.0098 (ep6)   0.7968+0.0095 (ep0)   Mean    0.7810 test_ClusteringAcc_softmax_reg3                    0.8099+0.0100 (ep6)   0.8249+0.0097 (ep0)   Mean    0.8141
-valid_ProtoTransductiveProbAcc_reg3                0.8278+0.0067 (ep5)   0.8409+0.0064 (ep0)   Mean    0.8339 test_ProtoTransductiveProbAcc_reg3                 0.8556+0.0062 (ep5)   0.8635+0.0063 (ep0)   Mean    0.8567
-valid_ProtoTransductiveDstAcc_reg3                 0.8278+0.0067 (ep5)   0.8409+0.0064 (ep0)   Mean    0.8339 test_ProtoTransductiveDstAcc_reg3                  0.8556+0.0062 (ep5)   0.8635+0.0063 (ep0)   Mean    0.8567
-```
+<pre>
+valid_SupervisedAcc                                0.8083+0.0068 (ep5)   0.8186+0.0065 (ep0)   Mean    0.8140 
+test_SupervisedAcc                                 0.8343+0.0065 (ep5)   <b>0.8424+0.0065</b> (ep0)   Mean    0.8363
+valid_UnsupervisedAcc_softmax_reg3                 0.7020+0.0112 (ep6)   0.7265+0.0101 (ep2)   Mean    0.7148
+test_UnsupervisedAcc_softmax_reg3                  0.7542+0.0105 (ep6)   <b>0.7536+0.0104</b> (ep2)   Mean    0.7559
+valid_ClusteringAcc_softmax_reg3                   0.7683+0.0098 (ep6)   0.7968+0.0095 (ep0)   Mean    0.7810 
+test_ClusteringAcc_softmax_reg3                    0.8099+0.0100 (ep6)   0.8249+0.0097 (ep0)   Mean    0.8141
+valid_ProtoTransductiveProbAcc_reg3                0.8278+0.0067 (ep5)   0.8409+0.0064 (ep0)   Mean    0.8339 
+test_ProtoTransductiveProbAcc_reg3                 0.8556+0.0062 (ep5)   0.8635+0.0063 (ep0)   Mean    0.8567
+valid_ProtoTransductiveDstAcc_reg3                 0.8278+0.0067 (ep5)   0.8409+0.0064 (ep0)   Mean    0.8339
+test_ProtoTransductiveDstAcc_reg3                  0.8556+0.0062 (ep5)   0.8635+0.0063 (ep0)   Mean    0.8567
+</pre>
+
 
 
 ## Cross-Domain Experiments
 
 ### miniImageNet to CUB - Conv-4
 
+```bash
 python train_fsl.py  --max_epoch 200 --model_class ProtoNet --use_euclidean --backbone_class ConvNet --dataset MiniImageNet2CUB --way 5 --eval_way 5 --shot 5 --eval_shot 5 --query 15 --eval_query 15 --balance 0.1 --temperature 32 --temperature2 64 --lr 0.0001 --lr_mul 10 --lr_scheduler step --step_size 20 --gamma 0.5 --init_weights ./saves/initialization/miniimagenet/con-pre.pth --eval_interval 1 --tst_free 1 --tst_criterion UnsupervisedAcc_softmax --sinkhorn_reg "0.1,0.3,1,3,10"
 ```
 
 output
-```bash
-valid_SupervisedAcc                                0.6615+0.0072 (ep0)   0.6845+0.0077 (ep7)   Mean    0.6751 test_SupervisedAcc                                 0.6108+0.0078 (ep0)   0.6252+0.0073 (ep7)   Mean    0.6196
-valid_UnsupervisedAcc_sinkhorn_reg3                0.5140+0.0093 (ep0)   0.5436+0.0103 (ep7)   Mean    0.5257 test_UnsupervisedAcc_sinkhorn_reg3                 0.4539+0.0093 (ep0)   0.4701+0.0091 (ep7)   Mean    0.4666
-valid_ClusteringAcc_softmax_reg3                   0.6314+0.0086 (ep0)   0.6535+0.0098 (ep7)   Mean    0.6388 test_ClusteringAcc_softmax_reg3                    0.5887+0.0082 (ep0)   0.5972+0.0087 (ep7)   Mean    0.5937
-valid_ProtoTransductiveProbAcc_reg3                0.6786+0.0074 (ep0)   0.7020+0.0077 (ep7)   Mean    0.6936 test_ProtoTransductiveProbAcc_reg3                 0.6279+0.0079 (ep0)   0.6390+0.0076 (ep7)   Mean    0.6363
-valid_ProtoTransductiveDstAcc_reg3                 0.6786+0.0074 (ep0)   0.7020+0.0077 (ep7)   Mean    0.6936 test_ProtoTransductiveDstAcc_reg3                  0.6279+0.0079 (ep0)   0.6390+0.0076 (ep7)   Mean    0.6363
-```
+<pre>
+valid_SupervisedAcc                                0.6615+0.0072 (ep0)   0.6845+0.0077 (ep7)   Mean    0.6751 
+test_SupervisedAcc                                 0.6108+0.0078 (ep0)   <b>0.6252+0.0073</b> (ep7)   Mean    0.6196
+valid_UnsupervisedAcc_sinkhorn_reg3                0.5140+0.0093 (ep0)   0.5436+0.0103 (ep7)   Mean    0.5257
+test_UnsupervisedAcc_sinkhorn_reg3                 0.4539+0.0093 (ep0)   <b>0.4701+0.0091</b> (ep7)   Mean    0.4666
+valid_ClusteringAcc_softmax_reg3                   0.6314+0.0086 (ep0)   0.6535+0.0098 (ep7)   Mean    0.6388 
+test_ClusteringAcc_softmax_reg3                    0.5887+0.0082 (ep0)   0.5972+0.0087 (ep7)   Mean    0.5937
+valid_ProtoTransductiveProbAcc_reg3                0.6786+0.0074 (ep0)   0.7020+0.0077 (ep7)   Mean    0.6936 
+test_ProtoTransductiveProbAcc_reg3                 0.6279+0.0079 (ep0)   0.6390+0.0076 (ep7)   Mean    0.6363
+valid_ProtoTransductiveDstAcc_reg3                 0.6786+0.0074 (ep0)   0.7020+0.0077 (ep7)   Mean    0.6936
+test_ProtoTransductiveDstAcc_reg3                  0.6279+0.0079 (ep0)   0.6390+0.0076 (ep7)   Mean    0.6363
+</pre>
 
 ### miniImageNet to CUB - ResNet-12
 
@@ -88,14 +125,18 @@ valid_ProtoTransductiveDstAcc_reg3                 0.6786+0.0074 (ep0)   0.7020+
 python train_fsl.py  --max_epoch 200 --model_class ProtoNet  --backbone_class Res12 --dataset MiniImageNet2CUB --way 5 --eval_way 5 --shot 5 --eval_shot 5 --query 15 --eval_query 15 --balance 0.1 --temperature 64 --temperature2 32 --lr 0.0002 --lr_mul 10 --lr_scheduler step --step_size 40 --gamma 0.5 --init_weights ./saves/initialization/miniimagenet/Res12-pre.pth --eval_interval 1 --use_euclidean --tst_free 1 --tst_criterion UnsupervisedAcc_softmax --sinkhorn_reg "0.1,0.3,1,3,10"
 ```
 
-```bash
-valid_SupervisedAcc                                0.6605+0.0074 (ep1)   0.6698+0.0074 (ep4)   Mean    0.6635 test_SupervisedAcc                                 0.6089+0.0077 (ep1)   0.6138+0.0076 (ep4)   Mean    0.6113
-valid_UnsupervisedAcc_softmax_reg10                0.5019+0.0096 (ep6)   0.5180+0.0094 (ep5)   Mean    0.5092 test_UnsupervisedAcc_softmax_reg10                 0.4474+0.0091 (ep6)   0.4462+0.0090 (ep5)   Mean    0.4485
-valid_ClusteringAcc_softmax_reg10                  0.6276+0.0088 (ep6)   0.6377+0.0089 (ep5)   Mean    0.6322 test_ClusteringAcc_softmax_reg10                   0.5842+0.0081 (ep6)   0.5809+0.0085 (ep5)   Mean    0.5838
-valid_ProtoTransductiveProbAcc_reg10               0.6774+0.0076 (ep3)   0.6883+0.0076 (ep4)   Mean    0.6815 test_ProtoTransductiveProbAcc_reg10                0.6304+0.0078 (ep3)   0.6292+0.0077 (ep4)   Mean    0.6271
-valid_ProtoTransductiveDstAcc_reg10                0.6774+0.0076 (ep3)   0.6883+0.0076 (ep4)   Mean    0.6815 test_ProtoTransductiveDstAcc_reg10                 0.6304+0.0078 (ep3)   0.6292+0.0077 (ep4)   Mean    0.6271
-```
-
+<pre>
+valid_SupervisedAcc                                0.6605+0.0074 (ep1)   0.6698+0.0074 (ep4)   Mean    0.6635 
+test_SupervisedAcc                                 0.6089+0.0077 (ep1)   <b>0.6138+0.0076</b> (ep4)   Mean    0.6113
+valid_UnsupervisedAcc_softmax_reg10                0.5019+0.0096 (ep6)   0.5180+0.0094 (ep5)   Mean    0.5092 
+test_UnsupervisedAcc_softmax_reg10                 0.4474+0.0091 (ep6)   <b>0.4462+0.0090</b> (ep5)   Mean    0.4485
+valid_ClusteringAcc_softmax_reg10                  0.6276+0.0088 (ep6)   0.6377+0.0089 (ep5)   Mean    0.6322
+test_ClusteringAcc_softmax_reg10                   0.5842+0.0081 (ep6)   0.5809+0.0085 (ep5)   Mean    0.5838
+valid_ProtoTransductiveProbAcc_reg10               0.6774+0.0076 (ep3)   0.6883+0.0076 (ep4)   Mean    0.6815 
+test_ProtoTransductiveProbAcc_reg10                0.6304+0.0078 (ep3)   0.6292+0.0077 (ep4)   Mean    0.6271
+valid_ProtoTransductiveDstAcc_reg10                0.6774+0.0076 (ep3)   0.6883+0.0076 (ep4)   Mean    0.6815
+test_ProtoTransductiveDstAcc_reg10                 0.6304+0.0078 (ep3)   0.6292+0.0077 (ep4)   Mean    0.6271
+</pre>
 
 
 
