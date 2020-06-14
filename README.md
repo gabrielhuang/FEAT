@@ -16,7 +16,7 @@ The script reports best validation scores and test scores at the epoch with best
 ## Same-Domain Experiments
 
 
-### Conv-4 CUB
+### CUB - Conv-4
 ```bash
  python train_fsl.py --max_epoch 200 --model_class ProtoNet --use_euclidean --backbone_class ConvNet --dataset CUB --way 5 --eval_way 5 --shot 5 --eval_shot 5 --query 15 --eval_query 15 --balance 0.1 --temperature 32 --temperature2 64 --lr 0.0001 --lr_mul 10 --lr_scheduler step --step_size 20 --gamma 0.5 --init_weights ./saves/initialization/cub/con-pre.pth --eval_interval 1 --tst_free 1 --tst_criterion UnsupervisedAcc_softmax --sinkhorn_reg "0.03,0.1,0.3,1,3,10,30"
 ```
@@ -35,7 +35,7 @@ valid_ProtoTransductiveDstAcc_reg1                 0.7529+0.0072 (ep0)   0.8236+
 test_ProtoTransductiveDstAcc_reg1                  0.6983+0.0073 (ep0)   0.7735+0.0069 (ep49)  Mean    0.7654
 </pre>
 
-### miniImageNet Conv-4
+### miniImageNet - Conv-4
 ```bash
 python train_fsl.py  --max_epoch 20 --model_class ProtoNet --use_euclidean --backbone_class ConvNet --dataset MiniImageNet --way 5 --eval_way 5 --shot 5 --eval_shot 5 --query 15 --eval_query 15 --balance 0.1 --temperature 32 --temperature2 64 --lr 0.0001 --lr_mul 10 --lr_scheduler step --step_size 20 --gamma 0.5 --init_weights ./saves/initialization/miniimagenet/con-pre.pth --eval_interval 1 --tst_free 1 --tst_criterion UnsupervisedAcc_softmax --sinkhorn_reg "0.03,0.1,0.3,1,3,10,30"
 ```
@@ -55,7 +55,7 @@ test_ProtoTransductiveDstAcc_reg3                  0.7176+0.0067 (ep2)   0.7176+
 </pre>
 
 
-### miniImageNet ResNet-12
+### miniImageNet - ResNet-12
 
 ```bash
 python train_fsl.py  --max_epoch 20 --model_class ProtoNet  --backbone_class Res12 --dataset MiniImageNet --way 5 --eval_way 5 --shot 5 --eval_shot 5 --query 15 --eval_query 15 --balance 0.1 --temperature 64 --temperature2 32 --lr 0.0002 --lr_mul 10 --lr_scheduler step --step_size 40 --gamma 0.5 --init_weights ./saves/initialization/miniimagenet/Res12-pre.pth --eval_interval 1 --use_euclidean --tst_free 1 --tst_criterion UnsupervisedAcc_softmax --sinkhorn_reg "0.03,0.1,0.3,1,3,10,30"
@@ -75,7 +75,7 @@ valid_ProtoTransductiveDstAcc_reg10                0.8373+0.0057 (ep7)   0.8542+
 test_ProtoTransductiveDstAcc_reg10                 0.8130+0.0061 (ep7)   0.8279+0.0057 (ep2)   Mean    0.8198
 </pre>
 
-### tieredImageNet ResNet-12
+### tieredImageNet - ResNet-12
 
 ```bash
 python train_fsl.py  --max_epoch 20 --model_class ProtoNet  --backbone_class Res12 --dataset  TieredImageNet --way 5 --eval_way 5 --shot 5 --eval_shot 5 --query 15 --eval_query 15 --balance 0.1 --temperature 64 --temperature2 32 --lr 0.0002 --lr_mul 10 --lr_scheduler step --step_size 40 --gamma 0.5 --init_weights ./saves/initialization/tieredimagenet/Res12-pre.pth --eval_interval 1 --use_euclidean --tst_free 1 --tst_criterion UnsupervisedAcc_softmax --sinkhorn_reg "0.03,0.1,0.3,1,3,10,30"
@@ -105,7 +105,7 @@ test_ProtoTransductiveDstAcc_reg3                  0.8556+0.0062 (ep5)   0.8635+
 python train_fsl.py  --max_epoch 200 --model_class ProtoNet --use_euclidean --backbone_class ConvNet --dataset MiniImageNet2CUB --way 5 --eval_way 5 --shot 5 --eval_shot 5 --query 15 --eval_query 15 --balance 0.1 --temperature 32 --temperature2 64 --lr 0.0001 --lr_mul 10 --lr_scheduler step --step_size 20 --gamma 0.5 --init_weights ./saves/initialization/miniimagenet/con-pre.pth --eval_interval 1 --tst_free 1 --tst_criterion UnsupervisedAcc_softmax --sinkhorn_reg "0.1,0.3,1,3,10"
 ```
 
-output
+Output
 <pre>
 valid_SupervisedAcc                                0.6615+0.0072 (ep0)   0.6845+0.0077 (ep7)   Mean    0.6751 
 test_SupervisedAcc                                 0.6108+0.0078 (ep0)   <b>0.6252+0.0073</b> (ep7)   Mean    0.6196
@@ -125,6 +125,7 @@ test_ProtoTransductiveDstAcc_reg3                  0.6279+0.0079 (ep0)   0.6390+
 python train_fsl.py  --max_epoch 200 --model_class ProtoNet  --backbone_class Res12 --dataset MiniImageNet2CUB --way 5 --eval_way 5 --shot 5 --eval_shot 5 --query 15 --eval_query 15 --balance 0.1 --temperature 64 --temperature2 32 --lr 0.0002 --lr_mul 10 --lr_scheduler step --step_size 40 --gamma 0.5 --init_weights ./saves/initialization/miniimagenet/Res12-pre.pth --eval_interval 1 --use_euclidean --tst_free 1 --tst_criterion UnsupervisedAcc_softmax --sinkhorn_reg "0.1,0.3,1,3,10"
 ```
 
+Output
 <pre>
 valid_SupervisedAcc                                0.6605+0.0074 (ep1)   0.6698+0.0074 (ep4)   Mean    0.6635 
 test_SupervisedAcc                                 0.6089+0.0077 (ep1)   <b>0.6138+0.0076</b> (ep4)   Mean    0.6113
@@ -139,7 +140,7 @@ test_ProtoTransductiveDstAcc_reg10                 0.6304+0.0078 (ep3)   0.6292+
 </pre>
 
 
-
+<br><br><br><br>
 
 # Original README
 
